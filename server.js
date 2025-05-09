@@ -20,7 +20,7 @@ app.get('/movies',async(req,res)=>{
     const movieRes = await axios.get(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`);
     const movies = movieRes.data.results;
 
-    const detailedMovies = await Promise.all(movies.slice(0, 10).map(async (movie) => {
+    const detailedMovies = await Promise.all(movies.slice(0, 100).map(async (movie) => {
       const [detailsRes, creditsRes] = await Promise.all([
         axios.get(`${BASE_URL}/movie/${movie.id}?api_key=${API_KEY}&language=en-US`),
         axios.get(`${BASE_URL}/movie/${movie.id}/credits?api_key=${API_KEY}&language=en-US`)
