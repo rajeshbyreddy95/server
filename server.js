@@ -6,6 +6,13 @@ app.get('/', (req, res) => {
   res.send('Hello World from Node.js Server!');
 });
 
+
+app.get('/hello', (req, res) => {
+  res.send('Hello Rajesh');
+});
+
+
+
 // Add more routes here
 
 app.listen(PORT, () => {
