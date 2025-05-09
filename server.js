@@ -1,12 +1,20 @@
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
+const cors = require('cors')
 require('dotenv').config();
 
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
 
+
+// cors
+app.use(cors())
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+}));
 
 app.get('/', async(req, res) => {
   res.send('Hello World from Node.js Server!');
