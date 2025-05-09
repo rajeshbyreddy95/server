@@ -1,28 +1,24 @@
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
-const cors = require('cors')
+const cors = require('cors');
 require('dotenv').config();
 
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
 
-
-// cors
-app.use(cors())
-
 app.use(cors({
   origin: 'http://localhost:3000',
 }));
 
-app.get('/', async(req, res) => {
+app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
 });
 
-app.get('/movies',async(req,res)=>{
-    const BASE_URL = 'https://api.themoviedb.org/3';
-  const IMAGE_URL = 'https://image.tmdb.org/t/p/original'; // For full resolution
+app.get('/movies', async (req, res) => {
+  const BASE_URL = 'https://api.themoviedb.org/3';
+  const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
 
   try {
     const movieRes = await axios.get(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`);
@@ -62,16 +58,61 @@ app.get('/movies',async(req,res)=>{
     console.error('Error fetching movies:', error.message);
     res.status(500).json({ message: 'Failed to fetch movies' });
   }
-})
+});
 
+app.get('/movieDetails/:id', async (req, res) => {
+  const { id } = req.params;
+  const BASE_URL = 'https://api.themoviedb.org/3';
+  const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
+
+  try {
+    const [detailsRes, creditsRes, videosRes] = await Promise.all([
+      axios.get(`${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US`),
+      axios.get(`${BASE_URL}/movie/${id}/credits?api_key=${API_KEY}&language=en-US`),
+      axios.get(`${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`)
+    ]);
+
+    const details = detailsRes.data;
+    const credits = creditsRes.data;
+    const videos = videosRes.data.results;
+
+    const director = credits.crew.find(member => member.job === 'Director');
+    const cast = credits.cast.slice(0, 10).map(actor => ({
+      name: actor.name,
+      character: actor.character,
+      profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null
+    }));
+
+    const trailer = videos.find(video => video.type === 'Trailer' && video.site === 'YouTube');
+
+    const movieDetails = {
+      id: details.id,
+      title: details.title,
+      overview: details.overview,
+      poster: details.poster_path ? `${IMAGE_URL}${details.poster_path}` : null,
+      banner: details.backdrop_path ? `${IMAGE_URL}${details.backdrop_path}` : null,
+      releaseYear: details.release_date.split('-')[0],
+      genres: details.genres.map(g => g.name),
+      rating: details.vote_average,
+      runtime: details.runtime,
+      director: director ? director.name : 'Unknown',
+      cast,
+      trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
+      budget: details.budget,
+      revenue: details.revenue,
+      tagline: details.tagline
+    };
+
+    res.json(movieDetails);
+  } catch (error) {
+    console.error('Error fetching movie details:', error.message);
+    res.status(500).json({ message: 'Failed to fetch movie details' });
+  }
+});
 
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
 });
-
-
-
-// Add more routes here
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
