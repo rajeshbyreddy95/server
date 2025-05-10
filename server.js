@@ -2,14 +2,104 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
+const mongoose = require('mongoose');
+
+
+
 require('dotenv').config();
 
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
+const MONGODB_SRV = process.env.MONGODB_SRV
+
+
+// mongoose connection
+mongoose.connect(MONGODB_SRV, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('MongoDB connected successfully');
+})
+.catch((error) => {
+  console.error('MongoDB connection error:', error.message);
+});
+
+// user schema
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, trim: true },
+  username: { type: String, required: true, unique: true, trim: true },
+  name: { type: String, required: true, trim: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+const User = mongoose.model('User', userSchema);
+
+
+
+
 
 app.use(cors())
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.message);
+  res.status(500).json({ error: 'Internal server error', details: err.message });
+});
+
+// Signup Route
+app.post('/signup', async (req, res) => {
+  const { email, username, name, password, confirmPassword } = req.body;
+
+  try {
+    // Validation
+    if (!email || !username || !name || !password || !confirmPassword) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    // Check for existing user
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({
+        message: existingUser.email === email ? 'Email already exists' : 'Username already exists',
+      });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const user = new User({
+      email,
+      username,
+      name,
+      password: hashedPassword,
+    });
+
+    await user.save();
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Signup error:', error.message);
+    res.status(500).json({ message: 'Failed to register user' });
+  }
+});
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
