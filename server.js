@@ -24,7 +24,7 @@ app.use(cors());
 app.use(express.json())
 
 
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes);
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
