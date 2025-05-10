@@ -6,8 +6,18 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
+const allowedOrigins = [
+  'https://movierecomendation-gilt.vercel.app',
+  'http://localhost:3000', // Allow local development
+];
 app.use(cors({
-  origin: 'https://movierecomendation-gilt.vercel.app', // Ensure this matches your frontend URL
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
 }));
 app.use(express.json());
 
