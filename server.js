@@ -26,7 +26,11 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 // User Schema for Signup
 
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app', // your frontend Vercel domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json())
 
 
