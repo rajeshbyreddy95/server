@@ -206,10 +206,10 @@ app.get('/cast/:id', async (req, res) => {
 });
 
 
-app.post('/signup',(req,res)=>{
-  console.log(req.body());
+// app.post('/signup',(req,res)=>{
+//   console.log(req.body());
   
-})
+// })
 
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
