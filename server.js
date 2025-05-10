@@ -2,8 +2,8 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+// const mongoose = require('mongoose');
+// const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const axios = require('axios');
@@ -217,7 +217,7 @@ app.get('/cast/:id', async (req, res) => {
 
 
 app.post('/signup',(req,res)=>{
-  console.log(req.body().name);
+  console.log(req.body());
   
 })
 
