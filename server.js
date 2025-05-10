@@ -138,13 +138,13 @@ const genreMap = {
 
 app.get('/trending', async (req, res, next) => {
   try {
-    if (!TMDB_API_KEY) {
+    if (!API_KEY) {
       return res.status(500).json({ error: 'TMDB_API_KEY is not configured' });
     }
 
     const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
       params: {
-        api_key: TMDB_API_KEY,
+        api_key: API_KEY,
         language: 'en-US',
         page: 1,
       },
