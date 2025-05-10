@@ -6,11 +6,7 @@ const cors = require('cors');
 
 
 require('dotenv').config();
-const connectDB = require('./config/db');
-const User = require('./models/User');
 
-
-connectDB();
 
 const axios = require('axios');
 
@@ -22,9 +18,6 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 app.use(cors());
 
 app.use(express.json())
-
-
-
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
