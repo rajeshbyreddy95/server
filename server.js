@@ -10,7 +10,6 @@ const BASE_URL = 'https://api.themoviedb.org/3';
 
 
 app.use(cors());
-
 app.use(express.json())
 
 
