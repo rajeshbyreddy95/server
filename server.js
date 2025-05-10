@@ -34,7 +34,7 @@ async function connectMongoose() {
     return false;
   }
 }
-
+connectMongoose()
 
 // User Schema for Signup
 const userSchema = new mongoose.Schema({
