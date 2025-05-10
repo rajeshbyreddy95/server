@@ -25,12 +25,22 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 
 // User Schema for Signup
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app'
+];
 
 app.use(cors({
-  origin: 'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app', // your frontend Vercel domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json())
 
 
