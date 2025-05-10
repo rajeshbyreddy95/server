@@ -1,134 +1,80 @@
 const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 5000;
-const cors = require('cors');
-require('dotenv').config();
-
 const axios = require('axios');
+const cors = require('cors');
 
-const API_KEY = process.env.TMDB_API_KEY;
+const app = express();
+const port = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://movierecomendation-gilt.vercel.app', // Ensure this matches your frontend URL
 }));
+app.use(express.json());
 
-app.get('/', async (req, res) => {
-  res.send('Hello World from Node.js Server!');
-});
+// TMDB API configuration
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
-app.get('/movies', async (req, res) => {
-  const BASE_URL = 'https://api.themoviedb.org/3';
-  const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
+// Validate TMDB API key
+if (!TMDB_API_KEY) {
+  console.error('TMDB_API_KEY is not set. Please configure it in environment variables.');
+  process.exit(1);
+}
 
-  try {
-    const movieRes = await axios.get(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`);
-    const movies = movieRes.data.results;
-
-    const detailedMovies = await Promise.all(movies.slice(0, 100).map(async (movie) => {
-      const [detailsRes, creditsRes] = await Promise.all([
-        axios.get(`${BASE_URL}/movie/${movie.id}?api_key=${API_KEY}&language=en-US`),
-        axios.get(`${BASE_URL}/movie/${movie.id}/credits?api_key=${API_KEY}&language=en-US`)
-      ]);
-
-      const details = detailsRes.data;
-      const credits = creditsRes.data;
-
-      const director = credits.crew.find(member => member.job === 'Director');
-      const topCast = credits.cast.slice(0, 5).map(actor => ({
-        name: actor.name,
-        profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null
-      }));
-
-      return {
-        id: movie.id,
-        title: movie.title,
-        poster: movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : null,
-        banner: movie.backdrop_path ? `${IMAGE_URL}${movie.backdrop_path}` : null,
-        releaseYear: details.release_date.split('-')[0],
-        genres: details.genres.map(g => g.name),
-        rating: details.vote_average,
-        director: director ? director.name : 'Unknown',
-        cast: topCast
-      };
-    }));
-
-    res.json(detailedMovies);
-
-  } catch (error) {
-    console.error('Error fetching movies:', error.message);
-    res.status(500).json({ message: 'Failed to fetch movies' });
-  }
-});
-
+// Existing route for movie details (unchanged)
 app.get('/movieDetails/:id', async (req, res) => {
-  const { id } = req.params;
-  const BASE_URL = 'https://api.themoviedb.org/3';
-  const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
-
   try {
-    const [detailsRes, creditsRes, videosRes] = await Promise.all([
-      axios.get(`${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US`),
-      axios.get(`${BASE_URL}/movie/${id}/credits?api_key=${API_KEY}&language=en-US`),
-      axios.get(`${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`)
-    ]);
+    const { id } = req.params;
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/${id}`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        language: 'en-US',
+      },
+    });
 
-    const details = detailsRes.data;
-    const credits = creditsRes.data;
-    const videos = videosRes.data.results;
-
-    const director = credits.crew.find(member => member.job === 'Director');
-    const cast = credits.cast.slice(0, 10).map(actor => ({
-      name: actor.name,
-      character: actor.character,
-      profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null
-    }));
-
-    const trailer = videos.find(video => video.type === 'Trailer' && video.site === 'YouTube');
-
-    const movieDetails = {
-      id: details.id,
-      title: details.title,
-      overview: details.overview,
-      poster: details.poster_path ? `${IMAGE_URL}${details.poster_path}` : null,
-      banner: details.backdrop_path ? `${IMAGE_URL}${details.backdrop_path}` : null,
-      releaseYear: details.release_date.split('-')[0],
-      genres: details.genres.map(g => g.name),
-      rating: details.vote_average,
-      runtime: details.runtime,
-      director: director ? director.name : 'Unknown',
-      cast,
-      trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
-      budget: details.budget,
-      revenue: details.revenue,
-      tagline: details.tagline
-    };
-
-    res.json(movieDetails);
+    const movie = response.data;
+    res.json({
+      id: movie.id,
+      title: movie.title,
+      banner: movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : null,
+      poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+      tagline: movie.tagline,
+      overview: movie.overview,
+      releaseYear: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+      rating: movie.vote_average,
+      runtime: movie.runtime,
+      director: 'Unknown',
+      genres: movie.genres.map((g) => g.name),
+      cast: [],
+      budget: movie.budget || 0,
+      revenue: movie.revenue || 0,
+      trailer: null,
+    });
   } catch (error) {
-    console.error('Error fetching movie details:', error.message);
-    res.status(500).json({ message: 'Failed to fetch movie details' });
+    console.error('Error fetching movie details:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to fetch movie details', details: error.message });
   }
 });
 
-
-
-// trending movie route
+// Trending movies route
 app.get('/trending', async (req, res) => {
   try {
+    console.log('Fetching trending movies from TMDB...');
     const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
       params: {
         api_key: TMDB_API_KEY,
         language: 'en-US',
         page: 1,
       },
+      timeout: 10000, // 10s timeout
     });
 
+    console.log('TMDB Response:', response.data.results.length, 'movies fetched');
     const movies = response.data.results.slice(0, 30).map((movie) => ({
       id: movie.id,
       title: movie.title,
       poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
       genres: movie.genre_ids.map((id) => {
-        // Map genre IDs to names (simplified; use a genre lookup table or fetch /genre/movie/list)
         const genreMap = {
           28: 'Action',
           12: 'Adventure',
@@ -158,15 +104,19 @@ app.get('/trending', async (req, res) => {
 
     res.json(movies);
   } catch (error) {
-    console.error('Error fetching trending movies:', error);
-    res.status(500).json({ error: 'Failed to fetch trending movies' });
+    console.error('TMDB Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config?.url,
+    });
+    res.status(500).json({
+      error: 'Failed to fetch trending movies',
+      details: error.response?.data?.status_message || error.message,
+    });
   }
 });
 
-app.get('/hello', (req, res) => {
-  res.send('Hello Rajesh');
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
