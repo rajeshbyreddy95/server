@@ -11,7 +11,7 @@ require('dotenv').config();
 // const User = require('./models/User');
 
 
-connectDB();
+// connectDB();
 
 const axios = require('axios');
 
