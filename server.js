@@ -135,17 +135,20 @@ const genreMap = {
   37: 'Western',
 };
 
-app.get('/trendingMovies', async (req, res, next) => {
-  
-  console.log('insode the trending route');
-  
+app.get('/trending', async (req, res, next) => {
   try {
     if (!TMDB_API_KEY) {
       throw new Error('TMDB_API_KEY is not configured');
     }
 
+    // Check cache (1-hour expiration)
+    if (cache.trending && Date.now() - cache.timestamp < 3600000) {
+      console.log('Serving cached trending movies');
+      return res.json(cache.trending);
+    }
+
     console.log('Fetching trending movies from TMDB...');
-    const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
+    const movieRes = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
       params: {
         api_key: TMDB_API_KEY,
         language: 'en-US',
@@ -154,18 +157,63 @@ app.get('/trendingMovies', async (req, res, next) => {
       timeout: 10000,
     });
 
-    console.log('TMDB Response:', response.data.results?.length || 0, 'movies fetched');
+    const movies = movieRes.data.results || [];
+    console.log('TMDB Response:', movies.length, 'movies fetched');
 
-    const movies = (response.data.results || []).slice(0, 30).map((movie) => ({
-      id: movie.id || 0,
-      title: movie.title || 'Unknown',
-      poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-      genres: (movie.genre_ids || []).map((id) => genreMap[id] || 'Unknown'),
-      rating: movie.vote_average || 0,
-      releaseYear: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+    const detailedMovies = await Promise.all(movies.slice(0, 30).map(async (movie) => {
+      try {
+        const [detailsRes, creditsRes] = await Promise.all([
+          axios.get(`${TMDB_BASE_URL}/movie/${movie.id}`, {
+            params: { api_key: TMDB_API_KEY, language: 'en-US' },
+            timeout: 5000,
+          }),
+          axios.get(`${TMDB_BASE_URL}/movie/${movie.id}/credits`, {
+            params: { api_key: TMDB_API_KEY, language: 'en-US' },
+            timeout: 5000,
+          }),
+        ]);
+
+        const details = detailsRes.data || {};
+        const credits = creditsRes.data || {};
+
+        const director = (credits.crew || []).find(member => member.job === 'Director');
+        const topCast = (credits.cast || []).slice(0, 5).map(actor => ({
+          name: actor.name || 'Unknown',
+          profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null,
+        }));
+
+        return {
+          id: movie.id || 0,
+          title: movie.title || 'Unknown',
+          poster: movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : null,
+          banner: movie.backdrop_path ? `${IMAGE_URL}${movie.backdrop_path}` : null,
+          releaseYear: details.release_date ? details.release_date.split('-')[0] : 'N/A',
+          genres: (details.genres || []).map(g => g.name || 'Unknown'),
+          rating: details.vote_average || 0,
+          director: director ? director.name : 'Unknown',
+          cast: topCast,
+        };
+      } catch (error) {
+        console.error(`Error fetching details for movie ${movie.id}:`, error.message);
+        return {
+          id: movie.id || 0,
+          title: movie.title || 'Unknown',
+          poster: movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : null,
+          banner: movie.backdrop_path ? `${IMAGE_URL}${movie.backdrop_path}` : null,
+          releaseYear: 'N/A',
+          genres: [],
+          rating: 0,
+          director: 'Unknown',
+          cast: [],
+        };
+      }
     }));
 
-    res.status(200).json(movies);
+    // Cache the response
+    cache.trending = detailedMovies;
+    cache.timestamp = Date.now();
+
+    res.json(detailedMovies);
   } catch (error) {
     console.error('TMDB Error:', {
       message: error.message,
@@ -176,8 +224,6 @@ app.get('/trendingMovies', async (req, res, next) => {
     next(error);
   }
 });
-
-
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
 });
