@@ -49,6 +49,9 @@ const User = mongoose.model('User', userSchema);
 
 app.use(cors())
 
+
+
+
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
 });
@@ -242,6 +245,10 @@ app.get('/cast/:id', async (req, res) => {
 });
 
 
+app.post('/signup',(req,res)=>{
+  console.log(req.body);
+  
+})
 
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
