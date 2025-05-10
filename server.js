@@ -28,6 +28,9 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 
 app.use(cors())
 
+app.post('/api/auth/signup',(req,res)=>{
+  console.log(req.body);
+})
 
 // app.post('/api/auth', authRoutes);
 
