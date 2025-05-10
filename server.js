@@ -43,7 +43,7 @@ const User = mongoose.model('User', userSchema);
 
 
 app.use(cors({
-  origin: ['https://movierecomendation-gilt.vercel.app', 'http://localhost:3000'],
+  origin: ['https://movierecomendation-gilt.vercel.app'],
 }));
 app.use(express.json());
 
