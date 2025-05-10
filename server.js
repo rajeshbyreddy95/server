@@ -24,11 +24,7 @@ app.use(cors());
 app.use(express.json())
 
 
-try {
-  app.use('/api/auth', authRoutes);
-} catch (err) {
-  console.error('Failed to load authRoutes:', err);
-}
+
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
