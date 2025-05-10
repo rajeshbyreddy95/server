@@ -13,9 +13,6 @@ app.use(cors());
 
 app.use(express.json())
 
-app.get('/', async (req, res) => {
-  res.send('Hello World from Node.js Server!');
-});
 
 app.get('/movies', async (req, res) => {
   const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
@@ -111,8 +108,6 @@ app.get('/movieDetails/:id', async (req, res) => {
   }
 });
 
-
-
 // trending movie route
 const genreMap = {
   28: 'Action',
@@ -204,12 +199,6 @@ app.get('/cast/:id', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch cast details' });
   }
 });
-
-
-// app.post('/signup',(req,res)=>{
-//   console.log(req.body());
-  
-// })
 
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
