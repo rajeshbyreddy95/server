@@ -76,6 +76,7 @@ app.get('/movieDetails/:id', async (req, res) => {
 
     const director = credits.crew.find(member => member.job === 'Director');
     const cast = credits.cast.slice(0, 10).map(actor => ({
+      id:actor.id,
       name: actor.name,
       character: actor.character,
       profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null
