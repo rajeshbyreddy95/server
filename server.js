@@ -1,18 +1,12 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 const cors = require('cors');
-
-
-
 require('dotenv').config();
-
-
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
-const MONGODB_SRV = process.env.MONGODB_SRV;
 
 
 app.use(cors());
