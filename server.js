@@ -246,7 +246,7 @@ app.get('/cast/:id', async (req, res) => {
 
 
 app.post('/signup',(req,res)=>{
-  console.log(req.body);
+  console.log(req.body().name);
   
 })
 
