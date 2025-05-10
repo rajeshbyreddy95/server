@@ -1,25 +1,29 @@
 // config/db.js
 const mongoose = require('mongoose');
-require('dotenv').config();
 
-let isConnected = false;
+let cached = global.mongoose;
 
-const connectMongoose = async () => {
-  if (isConnected) return true;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
-  try {
-    await mongoose.connect(process.env.MONGODB_SRV, {
+async function connectMongoose() {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    const MONGODB_URI = process.env.MONGODB_SRV;
+    if (!MONGODB_URI) throw new Error('Missing MONGODB_SRV in .env');
+
+    cached.promise = mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+    }).then((mongoose) => {
+      return mongoose;
     });
-
-    isConnected = true;
-    console.log('MongoDB connected');
-    return true;
-  } catch (err) {
-    console.error('MongoDB connection failed:', err.message);
-    return false;
   }
-};
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
 
 module.exports = connectMongoose;

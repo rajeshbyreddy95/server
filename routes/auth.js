@@ -8,6 +8,7 @@ const connectMongoose = require('../config/db');
 // Signup Route
 router.post('/signup', async (req, res) => {
   const { email, username, name, password, confirmPassword } = req.body;
+  console.log('authRoutes loaded');
 
   try {
     const connected = await connectMongoose();
