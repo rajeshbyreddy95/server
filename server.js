@@ -110,6 +110,59 @@ app.get('/movieDetails/:id', async (req, res) => {
   }
 });
 
+
+
+// trending movie route
+app.get('/trending', async (req, res) => {
+  try {
+    const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        language: 'en-US',
+        page: 1,
+      },
+    });
+
+    const movies = response.data.results.slice(0, 30).map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+      genres: movie.genre_ids.map((id) => {
+        // Map genre IDs to names (simplified; use a genre lookup table or fetch /genre/movie/list)
+        const genreMap = {
+          28: 'Action',
+          12: 'Adventure',
+          16: 'Animation',
+          35: 'Comedy',
+          80: 'Crime',
+          99: 'Documentary',
+          18: 'Drama',
+          10751: 'Family',
+          14: 'Fantasy',
+          36: 'History',
+          27: 'Horror',
+          10402: 'Music',
+          9648: 'Mystery',
+          10749: 'Romance',
+          878: 'Science Fiction',
+          10770: 'TV Movie',
+          53: 'Thriller',
+          10752: 'War',
+          37: 'Western',
+        };
+        return genreMap[id] || 'Unknown';
+      }),
+      rating: movie.vote_average,
+      releaseYear: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+    }));
+
+    res.json(movies);
+  } catch (error) {
+    console.error('Error fetching trending movies:', error);
+    res.status(500).json({ error: 'Failed to fetch trending movies' });
+  }
+});
+
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
 });
