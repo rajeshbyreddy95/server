@@ -8,11 +8,11 @@ const cors = require('cors');
 // const mongoose = require('mongoose');
 // const bcrypt = require('bcrypt');
 require('dotenv').config();
-// const connectDB = require('./config/db');
+const connectDB = require('./config/db');
 // const User = require('./models/User');
 
 
-// connectDB();
+connectDB();
 
 const axios = require('axios');
 
