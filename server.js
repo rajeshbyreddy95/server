@@ -7,6 +7,7 @@ require('dotenv').config();
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
+const BASE_URL = 'https://api.themoviedb.org/3';
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -17,7 +18,6 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/movies', async (req, res) => {
-  const BASE_URL = 'https://api.themoviedb.org/3';
   const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
 
   try {
@@ -135,7 +135,10 @@ const genreMap = {
   37: 'Western',
 };
 
-app.get('/trending', async (req, res, next) => {
+app.get('/trendingMovies', async (req, res, next) => {
+  
+  console.log('insode the trending route');
+  
   try {
     if (!TMDB_API_KEY) {
       throw new Error('TMDB_API_KEY is not configured');
