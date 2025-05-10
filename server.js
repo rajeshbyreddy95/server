@@ -10,7 +10,7 @@ const API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app',
 }));
 
 app.get('/', async (req, res) => {
@@ -138,7 +138,6 @@ const genreMap = {
 
 app.get('/trending', async (req, res) => {
   console.log("hello its trending route");
-  
   try {
     if (!API_KEY) {
       return res.status(500).json({ error: 'TMDB_API_KEY is not configured' });
