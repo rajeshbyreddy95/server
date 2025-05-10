@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 
-
 require('dotenv').config();
 
 const axios = require('axios');
@@ -43,7 +42,12 @@ const User = mongoose.model('User', userSchema);
 
 
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://movierecomendation-gilt.vercel.app', 'http://localhost:3000'],
+}));
+app.use(express.json());
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -52,55 +56,6 @@ app.use((err, req, res, next) => {
 });
 
 // signup route
-app.post('/signup', async (req, res) => {
-  const { email, username, name, password, confirmPassword } = req.body;
-
-  try {
-    // Server-side validation
-    if (!email || !username || !name || !password || !confirmPassword) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
-    }
-
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: 'Passwords do not match' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
-    }
-
-    // Check for existing user
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-    if (existingUser) {
-      return res.status(400).json({
-        message: existingUser.email === email ? 'Email already exists' : 'Username already exists',
-      });
-    }
-
-    // Hash password with bcrypt
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Create and save user
-    const user = new User({
-      email,
-      username,
-      name,
-      password: hashedPassword,
-    });
-
-    await user.save();
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error('Signup error:', error.message);
-    res.status(500).json({ message: 'Failed to register user' });
-  }
-});
 
 
 app.get('/', async (req, res) => {
