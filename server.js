@@ -25,10 +25,6 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 
 // User Schema for Signup
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app'
-];
 
 app.use(cors());
 
