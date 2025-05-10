@@ -77,7 +77,7 @@ app.get('/movieDetails/:id', async (req, res, next) => {
 });
 
 // Trending movies route (modified from /movies)
-app.get('/trending', async (req, res, next) => {
+app.get('/trendingMovies', async (req, res, next) => {
   try {
     if (!TMDB_API_KEY) {
       throw new Error('TMDB_API_KEY is not configured');
