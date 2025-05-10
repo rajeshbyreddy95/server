@@ -2,12 +2,50 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
+const MONGODB_SRV = process.env.MONGODB_SRV;
+
+// Mongoose Connection (Lazy Initialization)
+let mongooseConnected = false;
+async function connectMongoose() {
+  if (mongooseConnected) return true;
+  if (!MONGODB_SRV) {
+    console.error('MONGODB_SRV is not configured');
+    return false;
+  }
+  try {
+    await mongoose.connect(MONGODB_SRV, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+    });
+    mongooseConnected = true;
+    console.log('MongoDB connected successfully');
+    return true;
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    return false;
+  }
+}
+
+
+// User Schema for Signup
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, trim: true },
+  username: { type: String, required: true, unique: true, trim: true },
+  name: { type: String, required: true, trim: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const User = mongoose.model('User', userSchema);
 
 app.use(cors())
 
