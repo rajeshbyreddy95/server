@@ -2,6 +2,9 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
+
+const authRoutes = require('./routes/auth');
+
 // const mongoose = require('mongoose');
 // const bcrypt = require('bcrypt');
 require('dotenv').config();
@@ -26,7 +29,7 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 app.use(cors())
 
 
-
+app.use('/api/auth', authRoutes);
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
