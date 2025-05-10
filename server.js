@@ -113,11 +113,34 @@ app.get('/movieDetails/:id', async (req, res) => {
 
 
 // trending movie route
+const genreMap = {
+  28: 'Action',
+  12: 'Adventure',
+  16: 'Animation',
+  35: 'Comedy',
+  80: 'Crime',
+  99: 'Documentary',
+  18: 'Drama',
+  10751: 'Family',
+  14: 'Fantasy',
+  36: 'History',
+  27: 'Horror',
+  10402: 'Music',
+  9648: 'Mystery',
+  10749: 'Romance',
+  878: 'Science Fiction',
+  10770: 'TV Movie',
+  53: 'Thriller',
+  10752: 'War',
+  37: 'Western',
+};
+
 app.get('/trending', async (req, res, next) => {
   try {
     if (!TMDB_API_KEY) {
       throw new Error('TMDB_API_KEY is not configured');
     }
+
     console.log('Fetching trending movies from TMDB...');
     const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
       params: {
@@ -129,39 +152,17 @@ app.get('/trending', async (req, res, next) => {
     });
 
     console.log('TMDB Response:', response.data.results?.length || 0, 'movies fetched');
+
     const movies = (response.data.results || []).slice(0, 30).map((movie) => ({
       id: movie.id || 0,
       title: movie.title || 'Unknown',
       poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-      genres: (movie.genre_ids || []).map((id) => {
-        const genreMap = {
-          28: 'Action',
-          12: 'Adventure',
-          16: 'Animation',
-          35: 'Comedy',
-          80: 'Crime',
-          99: 'Documentary',
-          18: 'Drama',
-          10751: 'Family',
-          14: 'Fantasy',
-          36: 'History',
-          27: 'Horror',
-          10402: 'Music',
-          9648: 'Mystery',
-          10749: 'Romance',
-          878: 'Science Fiction',
-          10770: 'TV Movie',
-          53: 'Thriller',
-          10752: 'War',
-          37: 'Western',
-        };
-        return genreMap[id] || 'Unknown';
-      }),
+      genres: (movie.genre_ids || []).map((id) => genreMap[id] || 'Unknown'),
       rating: movie.vote_average || 0,
       releaseYear: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
     }));
 
-    res.json(movies);
+    res.status(200).json(movies);
   } catch (error) {
     console.error('TMDB Error:', {
       message: error.message,
@@ -172,6 +173,7 @@ app.get('/trending', async (req, res, next) => {
     next(error);
   }
 });
+
 
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
