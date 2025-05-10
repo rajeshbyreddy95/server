@@ -29,11 +29,9 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 app.use(cors());
 app.use(express.json())
 
-app.post('/api/auth/signup',(req,res)=>{
-  console.log(req.body);
-})
 
-// app.post('/api/auth', authRoutes);
+
+app.post('/api/auth', authRoutes);
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
