@@ -2,12 +2,13 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 4000;
 const cors = require('cors');
-const authRoutes = require('./routes/auth');
+// const authRoutes = require('./routes/auth');
 
 
 require('dotenv').config();
-const connectDB = require('./config/db');
-const User = require('./models/User');
+// const connectDB = require('./config/db');
+
+// const User = require('./models/User');
 
 
 connectDB();
