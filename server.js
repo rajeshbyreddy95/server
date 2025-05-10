@@ -27,7 +27,7 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://movierecomendation-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app/', 'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app/'],
+  origin: ['https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app/'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
