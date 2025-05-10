@@ -9,9 +9,7 @@ const axios = require('axios');
 const API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
 
-app.use(cors({
-  origin: 'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app',
-}));
+app.use(cors())
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
