@@ -50,12 +50,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-// Signup Route
+// signup route
 app.post('/signup', async (req, res) => {
   const { email, username, name, password, confirmPassword } = req.body;
 
   try {
-    // Validation
+    // Server-side validation
     if (!email || !username || !name || !password || !confirmPassword) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -81,11 +81,11 @@ app.post('/signup', async (req, res) => {
       });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Hash password with bcrypt
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // Create and save user
     const user = new User({
       email,
       username,
@@ -100,6 +100,7 @@ app.post('/signup', async (req, res) => {
     res.status(500).json({ message: 'Failed to register user' });
   }
 });
+
 
 app.get('/', async (req, res) => {
   res.send('Hello World from Node.js Server!');
