@@ -136,13 +136,15 @@ const genreMap = {
 };
 
 
-app.get('/trending', async (req, res, next) => {
+app.get('/trending', async (req, res) => {
+  console.log("hello its trending route");
+  
   try {
     if (!API_KEY) {
       return res.status(500).json({ error: 'TMDB_API_KEY is not configured' });
     }
 
-    const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
+    const response = await axios.get(`${BASE_URL}/trending/movie/week`, {
       params: {
         api_key: API_KEY,
         language: 'en-US',
@@ -166,6 +168,8 @@ app.get('/trending', async (req, res, next) => {
     res.status(500).json({ error: 'Failed to fetch trending movies' });
   }
 });
+
+
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
 });
