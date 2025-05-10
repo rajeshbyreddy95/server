@@ -27,6 +27,7 @@ const MONGODB_SRV = process.env.MONGODB_SRV;
 
 
 app.use(cors());
+app.use(express.json())
 
 app.post('/api/auth/signup',(req,res)=>{
   console.log(req.body);
