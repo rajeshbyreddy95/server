@@ -43,7 +43,11 @@ const User = mongoose.model('User', userSchema);
 
 
 
-app.use(cors())
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://client-git-main-rajeshbyreddy95gmailcoms-projects.vercel.app'], // allow both local and deployed frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
