@@ -11,10 +11,10 @@ router.post('/signup', async (req, res) => {
   console.log('authRoutes loaded');
 
   try {
-    // const connected = await connectMongoose();
-    // if (!connected) {
-    //   return res.status(503).json({ message: 'Database unavailable, please try again later' });
-    // }
+    const connected = await connectMongoose();
+    if (!connected) {
+      return res.status(503).json({ message: 'Database unavailable, please try again later' });
+    }
 
     if (!email || !username || !name || !password || !confirmPassword) {
       return res.status(400).json({ message: 'All fields are required' });
