@@ -1,17 +1,33 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = 4040;
 const cors = require('cors');
+const authRoutes = require('./routes/auth');
+
+
 require('dotenv').config();
+const connectDB = require('./config/db');
+const User = require('./models/User');
+
+
+connectDB();
+
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
+const MONGODB_SRV = process.env.MONGODB_SRV;
 
+app.use(cors())
 
-app.use(cors());
 app.use(express.json())
 
+
+app.use('/api/auth', authRoutes);
+
+app.get('/hello', async (req, res) => {
+  res.send('Hello World from Node.js Server!');
+});
 
 app.get('/movies', async (req, res) => {
   const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
@@ -107,6 +123,8 @@ app.get('/movieDetails/:id', async (req, res) => {
   }
 });
 
+
+
 // trending movie route
 const genreMap = {
   28: 'Action',
@@ -198,6 +216,12 @@ app.get('/cast/:id', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch cast details' });
   }
 });
+
+
+app.post('/signup',(req,res)=>{
+  console.log(req.body());
+  
+})
 
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
