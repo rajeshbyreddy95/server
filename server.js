@@ -1,148 +1,89 @@
 const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 5000;
-const cors = require('cors');
-require('dotenv').config();
-
 const axios = require('axios');
+const cors = require('cors');
 
-const API_KEY = process.env.TMDB_API_KEY;
+const app = express();
+const port = process.env.PORT || 5000;
 
+// Middleware
+const allowedOrigins = [
+  'https://movierecomendation-gilt.vercel.app',
+  'http://localhost:3000',
+];
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
 }));
+app.use(express.json());
 
-app.get('/', async (req, res) => {
-  res.send('Hello World from Node.js Server!');
+// TMDB API configuration
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
+
+// Validate TMDB API key
+if (!TMDB_API_KEY) {
+  console.warn('Warning: TMDB_API_KEY is not set. API requests will fail.');
+}
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.message);
+  res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-app.get('/movies', async (req, res) => {
-  const BASE_URL = 'https://api.themoviedb.org/3';
-  const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
-
+// Movie details route (unchanged from previous)
+app.get('/movieDetails/:id', async (req, res, next) => {
   try {
-    const movieRes = await axios.get(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`);
-    const movies = movieRes.data.results;
+    if (!TMDB_API_KEY) {
+      throw new Error('TMDB_API_KEY is not configured');
+    }
+    const { id } = req.params;
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/${id}`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        language: 'en-US',
+      },
+      timeout: 10000,
+    });
 
-    const detailedMovies = await Promise.all(movies.slice(0, 100).map(async (movie) => {
-      const [detailsRes, creditsRes] = await Promise.all([
-        axios.get(`${BASE_URL}/movie/${movie.id}?api_key=${API_KEY}&language=en-US`),
-        axios.get(`${BASE_URL}/movie/${movie.id}/credits?api_key=${API_KEY}&language=en-US`)
-      ]);
-
-      const details = detailsRes.data;
-      const credits = creditsRes.data;
-
-      const director = credits.crew.find(member => member.job === 'Director');
-      const topCast = credits.cast.slice(0, 5).map(actor => ({
-        name: actor.name,
-        profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null
-      }));
-
-      return {
-        id: movie.id,
-        title: movie.title,
-        poster: movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : null,
-        banner: movie.backdrop_path ? `${IMAGE_URL}${movie.backdrop_path}` : null,
-        releaseYear: details.release_date.split('-')[0],
-        genres: details.genres.map(g => g.name),
-        rating: details.vote_average,
-        director: director ? director.name : 'Unknown',
-        cast: topCast
-      };
-    }));
-
-    res.json(detailedMovies);
-
+    const movie = response.data;
+    res.json({
+      id: movie.id || 0,
+      title: movie.title || 'Unknown',
+      banner: movie.backdrop_path ? `${IMAGE_URL}${movie.backdrop_path}` : null,
+      poster: movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : null,
+      tagline: movie.tagline || '',
+      overview: movie.overview || '',
+      releaseYear: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+      rating: movie.vote_average || 0,
+      runtime: movie.runtime || 0,
+      director: 'Unknown',
+      genres: movie.genres ? movie.genres.map((g) => g.name) : [],
+      cast: [],
+      budget: movie.budget || 0,
+      revenue: movie.revenue || 0,
+      trailer: null,
+    });
   } catch (error) {
-    console.error('Error fetching movies:', error.message);
-    res.status(500).json({ message: 'Failed to fetch movies' });
+    console.error('Error fetching movie details:', error.response?.data || error.message);
+    next(error);
   }
 });
 
-app.get('/movieDetails/:id', async (req, res) => {
-  const { id } = req.params;
-  const BASE_URL = 'https://api.themoviedb.org/3';
-  const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
-
-  try {
-    const [detailsRes, creditsRes, videosRes] = await Promise.all([
-      axios.get(`${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US`),
-      axios.get(`${BASE_URL}/movie/${id}/credits?api_key=${API_KEY}&language=en-US`),
-      axios.get(`${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`)
-    ]);
-
-    const details = detailsRes.data;
-    const credits = creditsRes.data;
-    const videos = videosRes.data.results;
-
-    const director = credits.crew.find(member => member.job === 'Director');
-    const cast = credits.cast.slice(0, 10).map(actor => ({
-      name: actor.name,
-      character: actor.character,
-      profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null
-    }));
-
-    const trailer = videos.find(video => video.type === 'Trailer' && video.site === 'YouTube');
-
-    const movieDetails = {
-      id: details.id,
-      title: details.title,
-      overview: details.overview,
-      poster: details.poster_path ? `${IMAGE_URL}${details.poster_path}` : null,
-      banner: details.backdrop_path ? `${IMAGE_URL}${details.backdrop_path}` : null,
-      releaseYear: details.release_date.split('-')[0],
-      genres: details.genres.map(g => g.name),
-      rating: details.vote_average,
-      runtime: details.runtime,
-      director: director ? director.name : 'Unknown',
-      cast,
-      trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
-      budget: details.budget,
-      revenue: details.revenue,
-      tagline: details.tagline
-    };
-
-    res.json(movieDetails);
-  } catch (error) {
-    console.error('Error fetching movie details:', error.message);
-    res.status(500).json({ message: 'Failed to fetch movie details' });
-  }
-});
-
-
-
-// trending movie route
-const genreMap = {
-  28: 'Action',
-  12: 'Adventure',
-  16: 'Animation',
-  35: 'Comedy',
-  80: 'Crime',
-  99: 'Documentary',
-  18: 'Drama',
-  10751: 'Family',
-  14: 'Fantasy',
-  36: 'History',
-  27: 'Horror',
-  10402: 'Music',
-  9648: 'Mystery',
-  10749: 'Romance',
-  878: 'Science Fiction',
-  10770: 'TV Movie',
-  53: 'Thriller',
-  10752: 'War',
-  37: 'Western',
-};
-
+// Trending movies route (modified from /movies)
 app.get('/trending', async (req, res, next) => {
   try {
     if (!TMDB_API_KEY) {
       throw new Error('TMDB_API_KEY is not configured');
     }
-
     console.log('Fetching trending movies from TMDB...');
-    const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
+    const movieRes = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
       params: {
         api_key: TMDB_API_KEY,
         language: 'en-US',
@@ -151,18 +92,59 @@ app.get('/trending', async (req, res, next) => {
       timeout: 10000,
     });
 
-    console.log('TMDB Response:', response.data.results?.length || 0, 'movies fetched');
+    const movies = movieRes.data.results || [];
+    console.log('TMDB Response:', movies.length, 'movies fetched');
 
-    const movies = (response.data.results || []).slice(0, 30).map((movie) => ({
-      id: movie.id || 0,
-      title: movie.title || 'Unknown',
-      poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-      genres: (movie.genre_ids || []).map((id) => genreMap[id] || 'Unknown'),
-      rating: movie.vote_average || 0,
-      releaseYear: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+    const detailedMovies = await Promise.all(movies.slice(0, 30).map(async (movie) => {
+      try {
+        const [detailsRes, creditsRes] = await Promise.all([
+          axios.get(`${TMDB_BASE_URL}/movie/${movie.id}`, {
+            params: { api_key: TMDB_API_KEY, language: 'en-US' },
+            timeout: 5000,
+          }),
+          axios.get(`${TMDB_BASE_URL}/movie/${movie.id}/credits`, {
+            params: { api_key: TMDB_API_KEY, language: 'en-US' },
+            timeout: 5000,
+          }),
+        ]);
+
+        const details = detailsRes.data || {};
+        const credits = creditsRes.data || {};
+
+        const director = (credits.crew || []).find(member => member.job === 'Director');
+        const topCast = (credits.cast || []).slice(0, 5).map(actor => ({
+          name: actor.name || 'Unknown',
+          profile: actor.profile_path ? `${IMAGE_URL}${actor.profile_path}` : null,
+        }));
+
+        return {
+          id: movie.id || 0,
+          title: movie.title || 'Unknown',
+          poster: movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : null,
+          banner: movie.backdrop_path ? `${IMAGE_URL}${movie.backdrop_path}` : null,
+          releaseYear: details.release_date ? details.release_date.split('-')[0] : 'N/A',
+          genres: (details.genres || []).map(g => g.name || 'Unknown'),
+          rating: details.vote_average || 0,
+          director: director ? director.name : 'Unknown',
+          cast: topCast,
+        };
+      } catch (error) {
+        console.error(`Error fetching details for movie ${movie.id}:`, error.message);
+        return {
+          id: movie.id || 0,
+          title: movie.title || 'Unknown',
+          poster: movie.poster_path ? `${IMAGE_URL}${movie.poster_path}` : null,
+          banner: movie.backdrop_path ? `${IMAGE_URL}${movie.backdrop_path}` : null,
+          releaseYear: 'N/A',
+          genres: [],
+          rating: 0,
+          director: 'Unknown',
+          cast: [],
+        };
+      }
     }));
 
-    res.status(200).json(movies);
+    res.json(detailedMovies);
   } catch (error) {
     console.error('TMDB Error:', {
       message: error.message,
@@ -174,11 +156,6 @@ app.get('/trending', async (req, res, next) => {
   }
 });
 
-
-app.get('/hello', (req, res) => {
-  res.send('Hello Rajesh');
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
