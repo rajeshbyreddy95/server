@@ -167,6 +167,43 @@ app.get('/trending', async (req, res) => {
   }
 });
 
+// cast details
+app.get('/cast/:id', async (req, res) => {
+  const { id } = req.params;
+  const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
+
+  try {
+    const response = await axios.get(`${BASE_URL}/person/${id}`, {
+      params: {
+        api_key: API_KEY,
+        language: 'en-US',
+      },
+    });
+
+    const data = response.data;
+
+    const castDetails = {
+      id: data.id,
+      name: data.name,
+      biography: data.biography,
+      birthday: data.birthday,
+      deathday: data.deathday,
+      gender: data.gender === 1 ? 'Female' : data.gender === 2 ? 'Male' : 'Other',
+      knownFor: data.known_for_department,
+      placeOfBirth: data.place_of_birth,
+      popularity: data.popularity,
+      profile: data.profile_path ? `${IMAGE_URL}${data.profile_path}` : null,
+      homepage: data.homepage || null,
+    };
+
+    res.json(castDetails);
+  } catch (error) {
+    console.error('Error fetching cast details:', error.message);
+    res.status(500).json({ message: 'Failed to fetch cast details' });
+  }
+});
+
+
 
 app.get('/hello', (req, res) => {
   res.send('Hello Rajesh');
