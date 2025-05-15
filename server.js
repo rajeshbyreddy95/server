@@ -6,7 +6,7 @@ const cors = require('cors');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({origin:'https://client-rose-pi.vercel.app/'}));
 const PORT = process.env.PORT || 8000;
 
 // Middleware (optional: bodyParser, cors, etc.)
