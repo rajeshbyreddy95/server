@@ -210,3 +210,63 @@ exports.cast = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch cast details' });
   }
 };
+
+exports.series=async(req,res)=>{
+  try {
+    const response = await axios.get(
+      `${TMDB_BASE_URL}/tv/popular?api_key=${process.env.TMDB_API_KEY}&language=en-US&page=1`
+    );
+    res.json(response.data.results);
+  } catch (error) {
+    console.error('Error fetching series:', error.message);
+    res.status(500).json({ msg: 'Error fetching series' });
+  }
+}
+
+exports.upcoming=async(req,res)=>{
+  try {
+    const response = await axios.get(
+      `${TMDB_BASE_URL}/movie/upcoming?api_key=${process.env.TMDB_API_KEY}&language=en-US&page=1`
+    );
+    res.json(response.data.results);
+  } catch (error) {
+    console.error('Error fetching upcoming movies:', error.message);
+    res.status(500).json({ msg: 'Error fetching upcoming movies' });
+  }
+}
+
+exports.toprated=async(req,res)=>{
+  try {
+    const response = await axios.get(
+      `${TMDB_BASE_URL}/movie/top_rated?api_key=${process.env.TMDB_API_KEY}&language=en-US&page=1`
+    );
+    res.json(response.data.results);
+  } catch (error) {
+    console.error('Error fetching top-rated movies:', error.message);
+    res.status(500).json({ msg: 'Error fetching top-rated movies' });
+  }
+}
+
+exports.genre = async(req,res)=>{
+  try {
+    const response = await axios.get(
+      `${TMDB_BASE_URL}/discover/movie?api_key=${process.env.TMDB_API_KEY}&with_genres=${req.params.genreId}&language=en-US`
+    );
+    res.json(response.data.results);
+  } catch (error) {
+    console.error('Error fetching genre movies:', error.message);
+    res.status(500).json({ msg: 'Error fetching genre movies' });
+  }
+}
+
+exports.genres=async(req,res)=>{
+  try {
+    const response = await axios.get(
+      `${TMDB_BASE_URL}/genre/movie/list?api_key=${process.env.TMDB_API_KEY}&language=en-US`
+    );
+    res.json(response.data.genres);
+  } catch (error) {
+    console.error('Error fetching genres:', error.message);
+    res.status(500).json({ msg: 'Error fetching genres' });
+  }
+}

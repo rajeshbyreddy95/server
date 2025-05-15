@@ -17,4 +17,10 @@ router.get('/trending', movieController.trending);
 // Get cast/actor details by person ID
 router.get('/cast/:id', movieController.cast);
 
+router.get('/series',movieController.series)
+router.get('/upcoming', movieController.upcoming)
+router.get('/top-rated', movieController.toprated)
+router.get('/genre/:genreId', movieController.genre)
+router.get('/genres', movieController.genres)
+
 module.exports = router;
