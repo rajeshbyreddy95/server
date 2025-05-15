@@ -259,20 +259,18 @@ exports.genre = async(req,res)=>{
   }
 }
 
-
 exports.genres = async (req, res) => {
   try {
-    const response = await axios.get(`${TMDB_BASE_URL}/genre/movie/list`, {
+    const response = await axios.get('https://api.themoviedb.org/3/genre/movie/list', {
       params: {
         api_key: process.env.TMDB_API_KEY,
         language: 'en-US',
       },
     });
 
-    const genres = response.data.genres || [];
-    res.json(genres);
+    res.json(response.data.genres);
   } catch (error) {
-    console.error('Error fetching genres:', error.message);
+    console.error('Error fetching genres:', error.response?.data || error.message);
     res.status(500).json({ msg: 'Error fetching genres' });
   }
 };
