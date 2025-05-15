@@ -1,22 +1,21 @@
 const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 5000;
+const dotenv = require('dotenv');
+const movieRoutes = require('./routes/movies'); // Adjust path as needed
 const cors = require('cors');
-const { route } = require('./routes/movies');
-require('dotenv').config();
-const axios = require('axios');
 
-const movieRoutes = require('./routes/movies')
+dotenv.config();
 
-
+const app = express();
 app.use(cors());
+const PORT = process.env.PORT || 8000;
 
-app.use(express.json())
+// Middleware (optional: bodyParser, cors, etc.)
+app.use(express.json());
 
+// Mount movie routes
 app.use('/', movieRoutes);
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
-
-

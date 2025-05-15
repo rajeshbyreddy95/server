@@ -1,13 +1,20 @@
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
+const movieController = require('../controllers/movies');
 
-const movieController = require('../controllers/movies')
+// Base route to check if server is running
+router.get('/', movieController.home);
 
+// Fetch list of popular movies with details
+router.get('/movies', movieController.movies);
 
-router.get('/',movieController.home)
-router.get('/movies', movieController.movies)
-router.get('/movieDetails/:id', movieController.movieDetails)
-router.get('/trending', movieController.trending)
-router.get('/cast/:id', movieController.cast)
+// Get full details of a specific movie by ID
+router.get('/movieDetails/:id', movieController.movieDetails);
 
-module.exports = router
+// Fetch trending movies of the week
+router.get('/trending', movieController.trending);
+
+// Get cast/actor details by person ID
+router.get('/cast/:id', movieController.cast);
+
+module.exports = router;
