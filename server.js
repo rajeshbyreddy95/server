@@ -6,14 +6,7 @@ const { route } = require('./routes/movies');
 require('dotenv').config();
 const axios = require('axios');
 
-
 const movieRoutes = require('./routes/movies')
-
-const API_KEY = process.env.TMDB_API_KEY;
-if (!API_KEY) {
-  throw new Error('TMDB_API_KEY not found. Check your .env file.');
-}
-const BASE_URL = 'https://api.themoviedb.org/3';
 
 
 app.use(cors());
