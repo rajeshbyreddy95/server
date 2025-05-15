@@ -9,7 +9,9 @@ const API_KEY = process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 
-app.use(cors());
+app.use(cors({
+  origin:['https://client-rose-pi.vercel.app/','http://localhost:3000']
+}));
 app.use(express.json())
 
 
