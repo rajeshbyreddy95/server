@@ -6,12 +6,23 @@ require('dotenv').config();
 const axios = require('axios');
 
 const API_KEY = process.env.TMDB_API_KEY;
+if (!API_KEY) {
+  throw new Error('TMDB_API_KEY not found. Check your .env file.');
+}
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 
 app.use(cors({
-  origin:['https://client-rose-pi.vercel.app/','http://localhost:3000']
+  origin: function (origin, callback) {
+    const allowed = ['https://client-rose-pi.vercel.app', 'http://localhost:3000'];
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
 }));
+
 app.use(express.json())
 
 
@@ -22,7 +33,7 @@ app.get('/movies', async (req, res) => {
     const movieRes = await axios.get(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`);
     const movies = movieRes.data.results;
 
-    const detailedMovies = await Promise.all(movies.slice(0, 100).map(async (movie) => {
+    const detailedMovies = await Promise.all(movies.slice(0, 10).map(async (movie) => {
       const [detailsRes, creditsRes] = await Promise.all([
         axios.get(`${BASE_URL}/movie/${movie.id}?api_key=${API_KEY}&language=en-US`),
         axios.get(`${BASE_URL}/movie/${movie.id}/credits?api_key=${API_KEY}&language=en-US`)
@@ -208,3 +219,5 @@ app.get('/hello', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+console.error('Full error:', error);
