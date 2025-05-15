@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8000;
 app.use(express.json());
 
 // Mount movie routes
-app.use('/', movieRoutes);
+app.use('/api', movieRoutes);
 
 // Start server
 app.listen(PORT, () => {
