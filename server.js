@@ -12,16 +12,7 @@ if (!API_KEY) {
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 
-app.use(cors({
-  origin: function (origin, callback) {
-    const allowed = ['https://client-rose-pi.vercel.app', 'http://localhost:3000'];
-    if (!origin || allowed.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-}));
+app.use(cors());
 
 app.use(express.json())
 
