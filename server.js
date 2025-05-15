@@ -1,21 +1,24 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const movieRoutes = require('./routes/movies'); // Adjust path as needed
+const movieRoutes = require('./routes/movies');
 const cors = require('cors');
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
-const PORT = process.env.PORT || 8000;
 
-// Middleware (optional: bodyParser, cors, etc.)
+const allowedOrigin = 'https://client-rose-pi.vercel.app'; // ✅ Exact match
+app.use(cors({
+  origin: allowedOrigin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(express.json());
 
-// Mount movie routes
 app.use('/api', movieRoutes);
 
-// Start server
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
