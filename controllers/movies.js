@@ -267,6 +267,8 @@ exports.genres = async (req, res) => {
         language: 'en-US',
       },
     });
+    console.log(response.data.genres);
+    
 
     res.json(response.data.genres);
   } catch (error) {
@@ -274,3 +276,21 @@ exports.genres = async (req, res) => {
     res.status(500).json({ msg: 'Error fetching genres' });
   }
 };
+
+exports.genreslist=async(req,res)=>{
+  try {
+    const response = await axios.get(`${TMDB_BASE_URL}/discover/movie`, {
+      params: {
+        api_key: process.env.TMDB_API_KEY,
+        with_genres: req.params.genreId,
+        language: 'en-US',
+        sort_by: 'popularity.desc',
+      },
+    });
+    console.log('Genre Movies:', response.data.results); // Debug
+    res.json(response.data.results); // Return array
+  } catch (error) {
+    console.error('Error fetching genre movies:', error.response?.data || error.message);
+    res.status(500).json({ msg: 'Error fetching genre movies' });
+  }
+}
