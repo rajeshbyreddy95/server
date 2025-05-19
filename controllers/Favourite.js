@@ -2,53 +2,83 @@ const jwt = require('jsonwebtoken');
 const Favourite = require('../models/Favourite');
 const User = require('../models/User');
 
+
 exports.addFavourite = async (req, res) => {
   const { movieId } = req.body;
+
   try {
-    console.log('Request body:', req.body);
+    console.log('Incoming addFavourite request:', {
+      headers: req.headers,
+      body: req.body,
+    });
+
     const token = req.headers.authorization?.split(' ')[1];
+
     if (!token) {
-      console.log('No token provided');
+      console.log('❌ No token provided');
       return res.status(401).json({ message: 'No token provided' });
     }
-    console.log('Token:', token);
+
+    console.log('🛡️ Token received:', token);
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded:', decoded);
+
+    console.log('✅ Token decoded:', decoded);
+
+    if (!decoded.userId) {
+      console.log('❌ Decoded token missing userId:', decoded);
+      return res.status(401).json({ message: 'Invalid token structure' });
+    }
+
     const user = await User.findById(decoded.userId).select('email');
-    console.log('User:', user);
+    console.log('👤 Fetched user:', user);
+
     if (!user) {
-      console.log('User not found');
+      console.log('❌ User not found in DB');
       return res.status(404).json({ message: 'User not found' });
     }
+
     if (!movieId) {
-      console.log('Movie ID missing');
+      console.log('❌ Movie ID missing in body');
       return res.status(400).json({ message: 'Movie ID is required' });
     }
+
     let favourite = await Favourite.findOne({ email: user.email });
-    console.log('Favourite:', favourite);
+    console.log('⭐ Existing favourite entry:', favourite);
+
     if (favourite) {
       if (favourite.movieIds.includes(movieId)) {
-        console.log('Movie already in favourites:', movieId);
+        console.log('⚠️ Movie already in favourites:', movieId);
         return res.status(400).json({ message: 'Movie already in favourites' });
       }
+
       favourite.movieIds.push(movieId);
       await favourite.save();
-      console.log('Updated favourite:', favourite);
+      console.log('✅ Updated favourite with new movie:', favourite);
     } else {
       favourite = new Favourite({ email: user.email, movieIds: [movieId] });
       await favourite.save();
-      console.log('Created favourite:', favourite);
+      console.log('✅ Created new favourite entry:', favourite);
     }
+
     res.status(201).json({ message: 'Movie added to favourites', movieId });
+
   } catch (error) {
-    console.error('Add favourite error:', error.stack); // Log stack trace
+    console.error('🔥 Add favourite error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      full: error,
+    });
+
     if (error.name === 'JsonWebTokenError') {
-      console.log('Invalid token');
       return res.status(401).json({ message: 'Invalid token' });
     }
+
     res.status(500).json({ message: `Server error: ${error.message}` });
   }
 };
+
 exports.getFavourites = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
