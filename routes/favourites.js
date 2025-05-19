@@ -1,8 +1,9 @@
 const express = require('express');
-const { addFavourite, getFavourites } = require('../controllers/Favourite');
+const fav = require('../controllers/Favourite');
 const router = express.Router();
 
-router.post('/', addFavourite);
-router.get('/', getFavourites);
+router.post('/', fav.addFavourite);
+router.get('/', fav.getFavourites);
+router.delete('/:movieId', fav.removeFavourite);
 
 module.exports = router;
