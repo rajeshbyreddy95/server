@@ -1,27 +1,56 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const movieRoutes = require('./routes/movies');
 const cors = require('cors');
 const connectDB = require('./config/db');
-
+const movieRoutes = require('./routes/movies');
+const authRoutes = require('./routes/auth');
 
 dotenv.config();
 connectDB();
 
 const app = express();
 
-const allowedOrigin = 'https://client-rose-pi.vercel.app'; // ✅ Exact match
+// CORS configuration
+const allowedOrigins = [
+  'https://client-rose-pi.vercel.app',
+  'http://localhost:3000',
+];
+
 app.use(cors({
-  origin: allowedOrigin,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true,
 }));
 
+// Parse JSON bodies
 app.use(express.json());
 
+// Debug middleware
+app.use((req, res, next) => {
+  console.log('Incoming request:', {
+    method: req.method,
+    url: req.url,
+    body: req.body,
+    headers: req.headers,
+  });
+  next();
+});
+
+// Routes
 app.use('/api', movieRoutes);
+app.use('/api/auth', authRoutes);
 
-
+// Error handling
+app.use((err, req, res, next) => {
+  console.error('Server error:', err.message);
+  res.status(500).json({ message: 'Server error' });
+});
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {

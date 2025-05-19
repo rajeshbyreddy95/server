@@ -4,7 +4,7 @@ const movieController = require('../controllers/movies');
 const authController = require('../controllers/auth')
 
 
-router.post('/signup', movieController.signUp)
+router.post('/auth/signup', movieController.signUp)
 
 // Base route to check if server is running
 router.get('/', movieController.home);
