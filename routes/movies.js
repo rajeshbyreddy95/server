@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const movieController = require('../controllers/movies');
+const authController = require('../controllers/auth')
+
+
+router.post('/signup', movieController.signUp)
 
 // Base route to check if server is running
 router.get('/', movieController.home);
