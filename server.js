@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const movieRoutes = require('./routes/movies');
 const authRoutes = require('./routes/auth');
+const favouriteRoutes = require('./routes/favourites');
 
 dotenv.config();
 connectDB();
@@ -57,6 +58,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api', movieRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/favourites', favouriteRoutes)
 
 // Error handling
 app.use((err, req, res, next) => {
