@@ -4,6 +4,9 @@ const User = require('../models/User');
 
 exports.addFavourite = async (req, res) => {
   const { movieId } = req.body;
+  console.log('====================================');
+  console.log(movieId);
+  console.log('====================================');
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'No token provided' });
