@@ -11,7 +11,6 @@ connectDB();
 
 const app = express();
 
-// CORS configuration
 const allowedOrigins = [
   'https://client-rose-pi.vercel.app',
   'http://localhost:3000',
