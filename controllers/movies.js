@@ -1,6 +1,7 @@
 const axios = require('axios');
 const dotenv = require('dotenv')
 dotenv.config();
+const User = require('../models/User');
 
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_URL = 'https://image.tmdb.org/t/p/original';
